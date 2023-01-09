@@ -8,43 +8,41 @@
       fit
       highlight-current-row
     >
-      <el-table-column align="center" label="ID" width="95">
+      <el-table-column align="center" width="100" label="stock_code">
         <template slot-scope="scope">
-          {{ scope.$index }}
+          {{ scope.row.code }}
         </template>
       </el-table-column>
-      <el-table-column label="Title">
+      <el-table-column label="stock_name">
         <template slot-scope="scope">
-          {{ scope.row.title }}
+          {{ scope.row.name }}
         </template>
       </el-table-column>
-      <el-table-column label="Author" width="110" align="center">
+      <el-table-column
+        label="操作"
+        width="100"
+      >
         <template slot-scope="scope">
-          <span>{{ scope.row.author }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="Pageviews" width="110" align="center">
-        <template slot-scope="scope">
-          {{ scope.row.pageviews }}
-        </template>
-      </el-table-column>
-      <el-table-column class-name="status-col" label="Status" width="110" align="center">
-        <template slot-scope="scope">
-          <el-tag :type="scope.row.status | statusFilter">{{ scope.row.status }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" prop="created_at" label="Display_time" width="200">
-        <template slot-scope="scope">
-          <i class="el-icon-time" />
-          <span>{{ scope.row.display_time }}</span>
+          <el-button type="text" size="small" @click="handleClick(scope.row)">查看详情</el-button>
         </template>
       </el-table-column>
     </el-table>
+    <div class="pagination">
+      <el-pagination
+        :current-page="pageNumber"
+        :page-sizes="[10, 20, 50, 100, 200]"
+        :page-size="pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
   </div>
 </template>
 
 <script>
-import { getList } from '@/api/table'
+import { getStockList } from '@/api/table'
 
 export default {
   filters: {
@@ -60,7 +58,10 @@ export default {
   data() {
     return {
       list: null,
-      listLoading: true
+      listLoading: true,
+      pageNumber: 1,
+      pageSize: 10,
+      total: 0
     }
   },
   created() {
@@ -69,11 +70,28 @@ export default {
   methods: {
     fetchData() {
       this.listLoading = true
-      getList().then(response => {
-        this.list = response.data.items
+      const params = { pageNumber: this.pageNumber, pageSize: this.pageSize }
+      getStockList(params).then(response => {
+        this.list = response.data.list
+        this.total = response.data.total
         this.listLoading = false
       })
+    },
+    handleSizeChange(val) {
+      this.pageSize = val
+      this.fetchData()
+    },
+    handleCurrentChange(val) {
+      this.pageNumber = val
+      this.fetchData()
     }
   }
 }
 </script>
+<style>
+.pagination{
+  display: flex;
+  flex-direction: row-reverse;
+  margin-top: 12px;
+}
+</style>
